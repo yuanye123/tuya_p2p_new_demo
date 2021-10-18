@@ -23,88 +23,88 @@ p2p sdk集成了iot功能与p2p功能
 ### 初始化p2p
 ```java
     /**
- * 初始化p2p
- * @return 0 成功
- *         非0 失败
- */
+     * 初始化p2p
+     * @return 0 成功
+     *         非0 失败
+     */
     external fun initTransP2p(): Int
   ```
 ### 关闭p2p连接
 ```java
     /**
- * 关闭p2p连接
- */
+     * 关闭p2p连接
+     */
     external fun closeTransP2p()
 ```
 ### 多个dp上传接口
 ```java
  	/**
- * 多个dp上传接口
- * @param hasTime 是否使用时间戳
- * @param events  上传dp数组
- * @return 0 成功
- *        非0 失败
- */
+     * 多个dp上传接口
+     * @param hasTime 是否使用时间戳
+     * @param events  上传dp数组
+     * @return 0 成功
+     *        非0 失败
+     */
     external fun do_report(hasTime: Boolean, events: Array<DPEvent>): Int
 ```
 ### 上传单个dp
 ```java
 	/**
- * 上传单个dp
- * @param dpi dip
- * @param type dp类型
- * @param value dp数据
- * @param time 时间戳
- * @return 0 成功
- *         非0 失败
- */
+     * 上传单个dp
+     * @param dpi dip
+     * @param type dp类型
+     * @param value dp数据
+     * @param time 时间戳
+     * @return 0 成功
+     *         非0 失败
+     */
     external fun do_report(dpid: Int, type: Int, value: Any?, time: Int): Int
 ```
 ### 监听的mq协议类型
 ```java
 	 /**
- * 监听的mq协议类型
- * @param protocol  协议类型
- * @return 0 成功
- *        非0 失败
- */
+     * 监听的mq协议类型
+     * @param protocol  协议类型
+     * @return 0 成功
+     *        非0 失败
+     */
     external fun regist_mqtt_msg(protocol: Int): Int
 ```
 ### 上传mq message
 ```java
 /**
- * 上传mq message
- * @param protocol 协议类型
- * @param msg 消息
- * @return 0 成功
- *        非0 失败
- */
+     * 上传mq message
+     * @param protocol 协议类型
+     * @param msg 消息
+     * @return 0 成功
+     *        非0 失败
+     */
     external fun send_mqtt_msg(protocol: Int, msg: String): Int
 ```
 ### Http请求
 ```java
 	/**
- * Http请求
- * @param apiName
- * @param  apiVersion
- * @param jsonMsg
- */
+     * Http请求
+     * @param apiName  
+     * @param  apiVersion
+     * @param jsonMsg 
+     */
     external fun http_request(apiName: String, apiVersion: String, jsonMsg: String): HttpResponse
 ```
 ### 获取 deviceId
 ```java
 	/**
- * get deviceId
- * @return
- */
+     * get deviceId
+     * @return
+     */
     external fun getDeviceId(): String
 ```
 ###重置设备
 ```java
  	/**
- * unreset device
- * @return ret
- */
+     * unreset device
+     * @return ret
+     */
     external fun unActive(): Int
 ```
 ### p2p sdk回调
@@ -112,8 +112,13 @@ p2p sdk集成了iot功能与p2p功能
 interface P2pCallBack {
     /**
      * 云端解绑设备回调
+     * @param type 0 GW_LOCAL_RESET_FACTORY
+     *             1 GW_REMOTE_UNACTIVE
+     *             2 GW_LOCAL_UNACTIVE
+     *             3 GW_REMOTE_RESET_FACTORY
+     *             4 GW_RESET_DATA_FACTORY
      */
-    fun onReset()
+    fun onReset(type: Int)
 
     //
     /**
@@ -187,26 +192,24 @@ interface UpgradeEventCallback {
 }
 ···
 
-### 发送多个dp事件
-```java
-	/**
-     * 发送多个dp事件
-     *
-     * @param events 多个dp类型
-     * @return 0 成功
-     *         非0 失败 
-     */
-    fun sendDP(events: List<DPEvent>): Int
+        ### 发送多个dp事件
+        ```java
+        /**
+         * 发送多个dp事件
+         *
+         * @param events 多个dp类型
+         * @return 0 成功
+         *         非0 失败 
+         */
+        fun sendDP(events: List<DPEvent>): Int
 ```
 
 ### 开始升级
 ```java
 /**
-     * start upgrade download
-     * @return 0 sucess
-     *         not 0 failed
-     */
+ * start upgrade download
+ * @return 0 sucess
+ *         not 0 failed
+ */
     external fun start_upgradeDownload():Int
 ```
-
-
