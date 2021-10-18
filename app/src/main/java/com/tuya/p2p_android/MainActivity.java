@@ -17,6 +17,7 @@ import com.tuya.p2p.DPEvent;
 import com.tuya.p2p.Download_Album_Head;
 import com.tuya.p2p.Log;
 import com.tuya.p2p.P2pJniApi;
+import com.tuya.p2p.UpgradeEventCallback;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
 import org.json.JSONObject;
@@ -61,6 +62,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initSDK() {
+        P2pJniApi.INSTANCE.setUpgradeEventCallback(new UpgradeEventCallback() {
+            @Override
+            public void onUpgradeInfo(String s) {
+
+            }
+
+            @Override
+            public void onUpgradeDownloadStart() {
+
+            }
+
+            @Override
+            public void onUpgradeDownloadUpdate(int i) {
+
+            }
+
+            @Override
+            public void upgradeFileDownloadFinished(int i, String s) {
+
+            }
+        });
+        
+
         P2pJniApi.INSTANCE.setP2pCallBack(new P2pJniApi.P2pCallBack() {
             @Override
             public void recvVideData(int sessionId, P2pJniApi.RecvStatus status, byte[] buf, int len, Download_Album_Head downloadAlbumHead, C2C_CMD_IO_CTRL_ALBUM_DOWNLOAD_START c2cCmdIoCtrlAlbumDownloadStart) {
@@ -87,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onReset() {
+            public void onReset(int type) {
                 android.util.Log.d(TAG, "onReset ++++");
 //                P2pJniApi.INSTANCE.closeTransP2p();
                 Intent mStartActivity = getPackageManager().getLaunchIntentForPackage(getPackageName());
