@@ -1,5 +1,6 @@
 package com.tuya.p2p_android;
 
+
 import android.Manifest;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -18,9 +19,13 @@ import com.tuya.p2p.Download_Album_Head;
 import com.tuya.p2p.Log;
 import com.tuya.p2p.P2pJniApi;
 import com.tuya.p2p.UpgradeEventCallback;
+import com.tuya.p2p_android.utils.FileAssembleUtil;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
 import org.json.JSONObject;
+
+import java.io.File;
+import java.util.concurrent.ConcurrentHashMap;
 
 import pub.devrel.easypermissions.EasyPermissions;
 
@@ -33,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE};
 
     private final int PERMISSION_CODE = 123;
+
+    private ConcurrentHashMap<Integer, FileAssembleUtil> mediaParseHashMap = new ConcurrentHashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +66,17 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.txt_reset).setOnClickListener(v -> {
             P2pJniApi.INSTANCE.unActive();
         });
+
+        File videoDir = new File( "/sdcard/p2p/video");
+        if (!videoDir.exists()) {
+            videoDir.mkdirs();
+        }
+        File imgDir = new File( "/sdcard/p2p/video");
+        if (!imgDir.exists()) {
+            imgDir.mkdirs();
+        }
+
+
     }
 
     private void initSDK() {
@@ -83,12 +101,52 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        
 
         P2pJniApi.INSTANCE.setP2pCallBack(new P2pJniApi.P2pCallBack() {
             @Override
-            public void recvVideData(int sessionId, P2pJniApi.RecvStatus status, byte[] buf, int len, Download_Album_Head downloadAlbumHead, C2C_CMD_IO_CTRL_ALBUM_DOWNLOAD_START c2cCmdIoCtrlAlbumDownloadStart) {
-                android.util.Log.d(TAG, "channel is " + c2cCmdIoCtrlAlbumDownloadStart.filename + Thread.currentThread().getName() + "recvVideData status is " + status + "  download is packsize is " + downloadAlbumHead.packageSize + " fileName is " + downloadAlbumHead.fileName);
+            public void recvVideData(int sessionId, P2pJniApi.RecvStatus status, byte[] buf, int len, Download_Album_Head downloadAlbumHead, C2C_CMD_IO_CTRL_ALBUM_DOWNLOAD_START downloadExtra) {
+                android.util.Log.d(TAG, "channel is " + downloadExtra.filename + Thread.currentThread().getName() + "recvVideData status is " + status + "  download is packsize is " + downloadAlbumHead.packageSize + " fileName is " + downloadAlbumHead.fileName);
+                FileAssembleUtil fileAssembleUtil;
+                switch (status) {
+                    case TY_DATA_TRANSFER_IDLE:
+                        break;
+                    case TY_DATA_TRANSFER_START:
+                        Log.d(TAG, "recvVideData:current sessionId: $sessionId, current channel:${downloadExtra.channel} ,and current reqId is:${downloadAlbumHead.reqId}");
+                        //开始接受
+                        fileAssembleUtil = FileAssembleUtil.getInstance("/sdcard/p2p/video", "/sdcard/p2p/image");
+                        fileAssembleUtil.handlerData(FileAssembleUtil.STATE_START, buf, downloadAlbumHead, downloadExtra.albumName);
+                        mediaParseHashMap.put(sessionId,fileAssembleUtil);
+                        break;
+                    case TY_DATA_TRANSFER_PROCESS:
+                        //接收中
+                        fileAssembleUtil = mediaParseHashMap.get(sessionId);
+                        if (fileAssembleUtil!=null) {
+                            fileAssembleUtil.handlerData(FileAssembleUtil.STATE_PROCESS, buf, downloadAlbumHead, downloadExtra.albumName);
+                        }
+                        break;
+                    case TY_DATA_TRANSFER_ONCE :
+                        //开始即结束，只有一包数据
+                        fileAssembleUtil = FileAssembleUtil.getInstance("/sdcard/p2p/video", "/sdcard/p2p/image");
+                        fileAssembleUtil.handlerData(FileAssembleUtil.STATE_ONCE, buf, downloadAlbumHead, downloadExtra.albumName);
+                        break;
+                    case TY_DATA_TRANSFER_END:
+                        //接收完成
+                        fileAssembleUtil = mediaParseHashMap.get(sessionId);
+                        if (fileAssembleUtil!=null) {
+                            fileAssembleUtil.handlerData(FileAssembleUtil.STATE_DONE, buf, downloadAlbumHead, downloadExtra.albumName);
+                        }
+                        break;
+                    case TY_DATA_TRANSFER_CANCEL:
+
+                        fileAssembleUtil = mediaParseHashMap.get(sessionId);
+                        if (fileAssembleUtil!=null) {
+                            fileAssembleUtil.handlerData(FileAssembleUtil.STATE_CANCEL, buf, downloadAlbumHead, downloadExtra.albumName);
+                        }
+                        break;
+                    default:
+                }
+
+
             }
 
             @Override
